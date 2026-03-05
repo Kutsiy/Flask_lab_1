@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <nav>
+      <a href="{{ url_for('index') }}">Головна</a>
+      <a href="{{ url_for('catalog') }}">Каталог</a>
+      <a href="{{ url_for('about') }}">Про магазин</a>
+    </nav>
+
+    <hr />
+
+    {% block content %}{% endblock %}
+
+    <footer>
+      <hr />
+      © 2026 Електроніка
+    </footer>
+  </body>
+</html>

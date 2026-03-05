@@ -1,0 +1,35 @@
+{% extends "base.html" %} {% block title %}Каталог{% endblock %} {% block
+content %}
+
+<h1>Каталог товарів</h1>
+
+{% if search_query %}
+<p><strong>Результати пошуку за запитом: "{{ search_query }}"</strong></p>
+{% endif %}
+
+<h3>Фільтр за категорією:</h3>
+<a href="{{ url_for('catalog') }}">Усі товари</a>
+{% for cat in categories %} |
+<a href="{{ url_for('catalog', category=cat) }}">{{ cat }}</a>
+{% endfor %}
+
+<hr />
+
+{% for product in products %}
+<div>
+  <h3>
+    <a href="{{ url_for('product_detail', product_id=product.id) }}">
+      {{ product.name }}
+    </a>
+  </h3>
+  <p>Категорія: {{ product.category }}</p>
+  <p>Ціна: {{ "{:,.0f}".format(product.price).replace(",", " ") }} грн</p>
+  <p>
+    {% if product.in_stock %} ✅ В наявності {% else %} ❌ Немає в наявності {%
+    endif %}
+  </p>
+</div>
+<hr />
+{% else %}
+<p>Товари не знайдено.</p>
+{% endfor %} {% endblock %}

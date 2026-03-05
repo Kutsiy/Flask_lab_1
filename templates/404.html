@@ -1,0 +1,5 @@
+{% extends "base.html" %} {% block title %}404{% endblock %} {% block content %}
+<h1>404 — Сторінку не знайдено</h1>
+<p>Можливо, ви перейшли за неправильним посиланням.</p>
+<p><a href="{{ url_for('index') }}">Повернутися на головну</a></p>
+{% endblock %}
