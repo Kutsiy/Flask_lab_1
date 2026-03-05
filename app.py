@@ -1,9 +1,14 @@
 import random
 from statistics import mean
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret"
+app.config["SECRET_KEY"] = SECRET_KEY
 
 products = [
     {'id': 1, 'name': 'Ноутбук Lenovo ThinkPad X1', 'category': 'Ноутбуки',
