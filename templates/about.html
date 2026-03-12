@@ -1,6 +1,36 @@
-{% extends "base.html" %} {% block title %}Про магазин{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Про коледж{% endblock %} {% block
 content %}
-<h1>Про магазин</h1>
-<p>Ми спеціалізуємося на продажу сучасної електроніки.</p>
-<p>Наша мета — якість та сервіс.</p>
+
+<h1>{{ info.name|upper }}</h1>
+
+<p>Скорочена назва: {{ info.short_name }}</p>
+
+<p>Рік заснування: {{ info.founded }}</p>
+
+<p>Адреса: {{ info.address }}</p>
+
+<p>
+  Телефон:
+  <a href="tel:{{ info.phone }}"> {{ info.phone }} </a>
+</p>
+
+<p>
+  Email:
+  <a href="mailto:{{ info.email }}"> {{ info.email }} </a>
+</p>
+
+<h3>Відділення</h3>
+
+<ol>
+  {% for dep in info.departments %}
+
+  <li>{{ dep|title }}</li>
+
+  {% endfor %}
+</ol>
+
+<p>Коледжу вже {{ age }} років.</p>
+
+<p>Вебсайт: {{ info.website|default('не вказано', true) }}</p>
+
 {% endblock %}

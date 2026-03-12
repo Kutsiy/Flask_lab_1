@@ -1,184 +1,141 @@
-import random
-from statistics import mean
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from dotenv import load_dotenv
-import os
-load_dotenv()
-
-SECRET_KEY = os.getenv('SECRET_KEY')
+from flask import Flask, render_template
+from datetime import datetime
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = SECRET_KEY
 
-products = [
-    {'id': 1, 'name': 'Ноутбук Lenovo ThinkPad X1', 'category': 'Ноутбуки',
-     'price': 45999, 'in_stock': True,
-     'description': '14" IPS, Intel Core i7, 16GB RAM, 512GB SSD'},
-    {'id': 2, 'name': 'Монітор Samsung 27" 4K', 'category': 'Монітори',
-     'price': 15499, 'in_stock': True,
-     'description': '27" IPS, 3840x2160, HDR10, USB-C'},
-    {'id': 3, 'name': 'Клавіатура Keychron K2', 'category': 'Периферія',
-     'price': 3200, 'in_stock': False,
-     'description': 'Механічна, 75%, Bluetooth, RGB'},
-    {'id': 4, 'name': 'Навушники Sony WH-1000XM5', 'category': 'Аудіо',
-     'price': 11999, 'in_stock': True,
-     'description': 'Бездротові, ANC, 30 год автономності'},
-    {'id': 5, 'name': 'Миша Logitech MX Master 3S', 'category': 'Периферія',
-     'price': 4599, 'in_stock': True,
-     'description': 'Бездротова, USB-C, 8000 DPI, тиха'},
-    {'id': 6, 'name': 'Планшет Apple iPad Air', 'category': 'Планшети',
-     'price': 27999, 'in_stock': True,
-     'description': '10.9" Liquid Retina, M1, 256GB'},
-    {'id': 7, 'name': 'Веб-камера Logitech C920', 'category': 'Периферія',
-     'price': 2899, 'in_stock': False,
-     'description': 'Full HD 1080p, автофокус, стереомікрофон'},
-    {'id': 8, 'name': 'SSD Samsung 970 EVO Plus 1TB', 'category': 'Комплектуючі',
-     'price': 3899, 'in_stock': True,
-     'description': 'NVMe M.2, читання 3500 МБ/с, запис 3300 МБ/с'},
+students = [
+{
+'id': 1,
+'name': 'Олена Коваленко',
+'group': 'КН-21',
+'course': 2,
+'gpa': 4.5,
+'email': 'kovalenko@college.ua',
+'is_active': True,
+'subjects': ['Python', 'Бази даних', 'Алгоритми'],
+},
+{
+'id': 2,
+'name': 'Андрій Мельник',
+'group': 'КН-21',
+'course': 2,
+'gpa': 3.8,
+'email': 'melnyk@college.ua',
+'is_active': True,
+'subjects': ['Python', 'Веб-технології'],
+},
+{
+'id': 3,
+'name': 'Марія Шевченко',
+'group': 'КН-22',
+'course': 1,
+'gpa': 4.9,
+'email': 'shevchenko@college.ua',
+'is_active': True,
+'subjects': ['Вступ до програмування', 'Математика', 'Англійська'],
+},
+{
+'id': 4,
+'name': 'Дмитро Бондаренко',
+'group': 'КН-20',
+'course': 3,
+'gpa': 3.2,
+'email': 'bondarenko@college.ua',
+'is_active': False,
+'subjects': ['Операційні системи', 'Мережі'],
+},
+{
+'id': 5,
+'name': 'Ірина Ткаченко',
+'group': 'КН-22',
+'course': 1,
+'gpa': 4.1,
+'email': 'tkachenko@college.ua',
+'is_active': True,
+'subjects': ['Вступ до програмування', 'Математика', 'Фізика'],
+},
+{
+'id': 6,
+'name': 'Олексій Кравченко',
+'group': 'КН-21',
+'course': 2,
+'gpa': 3.5,
+'email': 'kravchenko@college.ua',
+'is_active': True,
+'subjects': ['Python', 'Бази даних'],
+},
 ]
 
+schedule = {
+'Понеділок': [
+{'time': '08:30', 'subject': 'Python', 'room': '301', 'type': 'лекція'},
+{'time': '10:15', 'subject': 'Бази даних', 'room': '215', 'type': 'практика'},
+],
+'Вівторок': [
+{'time': '08:30', 'subject': 'Алгоритми', 'room': '301', 'type': 'лекція'},
+{'time': '10:15', 'subject': 'Англійська', 'room': '118', 'type': 'практика'},
+{'time': '12:00', 'subject': 'Веб-технології', 'room': '305', 'type': 'лабораторна'},
+],
+'Середа': [],
+'Четвер': [
+{'time': '10:15', 'subject': 'Python', 'room': '305', 'type': 'лабораторна'},
+{'time': '12:00', 'subject': 'Математика', 'room': '210', 'type': 'лекція'},
+],
+"П'ятниця": [
+{'time': '08:30', 'subject': 'Бази даних', 'room': '301', 'type': 'лекція'},
+],
+}
 
-def find_product(product_id):
-    """Пошук товару за ID. Повертає словник або None."""
-    return next((p for p in products if p["id"] == product_id), None)
+college_info = {
+'name': 'Київський фаховий коледж інформаційних технологій',
+'short_name': 'КФКІТ',
+'founded': 1985,
+'address': 'м. Київ, вул. Навчальна, 1',
+'phone': '+380 44 123 45 67',
+'email': 'info@kfkit.edu.ua',
+'departments': [
+"Комп'ютерних наук",
+'Інформаційних технологій',
+'Кібербезпеки',
+'Програмної інженерії',
+],
+}
 
 
-@app.route("/")
+@app.route('/')
 def index():
-    """Головна сторінка магазину."""
-    return render_template("index.html", total=len(products))
-
-
-@app.route("/catalog")
-def catalog():
-    """Каталог товарів із можливістю фільтрації."""
-    category = request.args.get("category")
-
-    if category:
-        filtered = [p for p in products if p["category"] == category]
-    else:
-        filtered = products
-
-    categories = sorted(set(p["category"] for p in products))
-
     return render_template(
-        "catalog.html",
-        products=filtered,
-        categories=categories,
-        current_category=category,
-        search_query=None
+        'index.html',
+        college=college_info,
+        total_students=len(students)
     )
 
+@app.route('/students')
+def students_list():
+    return render_template('students.html', students=students)
 
-@app.route("/product/<int:product_id>")
-def product_detail(product_id):
-    """Сторінка одного товару."""
-    product = find_product(product_id)
+@app.route('/student/<int:student_id>')
+def student_detail(student_id):
+    student = next((s for s in students if s['id'] == student_id), None)
+    return render_template('student.html', student=student)
 
-    if not product:
-        return render_template("404.html"), 404
-
-    return render_template("product.html", product=product)
-
-
-
-@app.route("/api/products")
-def api_products():
-    """Повертає список товарів з підтримкою фільтрації."""
-    category = request.args.get("category")
-    min_price = request.args.get("min_price", type=int)
-    max_price = request.args.get("max_price", type=int)
-
-    filtered = products
-
-    if category:
-        filtered = [p for p in filtered if p["category"] == category]
-
-    if min_price is not None:
-        filtered = [p for p in filtered if p["price"] >= min_price]
-
-    if max_price is not None:
-        filtered = [p for p in filtered if p["price"] <= max_price]
-
-    return jsonify(filtered)
-
-
-@app.route("/api/products/<int:product_id>")
-def api_product(product_id):
-    """Повертає один товар або 404."""
-    product = find_product(product_id)
-
-    if not product:
-        return jsonify({"error": "Товар не знайдено"}), 404
-
-    return jsonify(product)
-
-
-@app.route("/api/products/stats")
-def api_stats():
-    """Статистика товарів."""
-    prices = [p["price"] for p in products]
-
-    stats = {
-        "total": len(products),
-        "in_stock": sum(p["in_stock"] for p in products),
-        "out_of_stock": sum(not p["in_stock"] for p in products),
-        "categories": len(set(p["category"] for p in products)),
-        "avg_price": round(mean(prices), 2),
-        "min_price": min(prices),
-        "max_price": max(prices),
-    }
-
-    return jsonify(stats)
-
-
-
-@app.route("/search")
-def search():
-    """Пошук товарів за назвою та описом."""
-    query = request.args.get("q")
-
-    if not query:
-        return redirect(url_for("catalog"))
-
-    query_lower = query.lower()
-
-    results = [
-        p for p in products
-        if query_lower in p["name"].lower()
-        or query_lower in p["description"].lower()
-    ]
-
-    categories = sorted(set(p["category"] for p in products))
-
+@app.route('/schedule')
+def schedule_view():
+    total_lessons = sum(len(lessons) for lessons in schedule.values())
     return render_template(
-        "catalog.html",
-        products=results,
-        categories=categories,
-        current_category=None,
-        search_query=query
+        'schedule.html',
+        schedule=schedule,
+        total_lessons=total_lessons
     )
 
-
-
-@app.route("/random")
-def random_product():
-    """Перенаправляє на випадковий товар."""
-    product = random.choice(products)
-    return redirect(url_for("product_detail", product_id=product["id"]))
-
-
-@app.route("/about")
+@app.route('/about')
 def about():
-    """Сторінка про магазин."""
-    return render_template("about.html")
-
-
-@app.errorhandler(404)
-def page_not_found(error):
-    """Обробник 404."""
-    return render_template("404.html"), 404
-
+    age = datetime.now().year - college_info['founded']
+    return render_template(
+        'about.html',
+        info=college_info,
+        age=age
+    )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

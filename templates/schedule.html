@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block title %}Розклад{% endblock %} {% block
+content %}
+
+<h1>Розклад занять</h1>
+
+{% for day, lessons in schedule.items() %}
+
+<h2>{{ day }}</h2>
+
+{% if lessons %}
+
+<table>
+  <tr>
+    <th>Час</th>
+    <th>Предмет</th>
+    <th>Аудиторія</th>
+    <th>Тип</th>
+  </tr>
+
+  {% for lesson in lessons %}
+
+  <tr>
+    <td>{{ lesson.time }}</td>
+    <td>{{ lesson.subject }}</td>
+    <td>{{ lesson.room }}</td>
+    <td>{{ lesson.type|capitalize }}</td>
+  </tr>
+
+  {% endfor %}
+</table>
+
+{% else %}
+
+<p>Вихідний / Вікно</p>
+
+{% endif %} {% endfor %}
+
+<p><strong>Всього занять за тиждень: {{ total_lessons }}</strong></p>
+
+{% endblock %}

@@ -2,26 +2,26 @@
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}Студентський портал{% endblock %}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
   </head>
   <body>
-    <nav>
-      <a href="{{ url_for('index') }}">Головна</a>
-      <a href="{{ url_for('catalog') }}">Каталог</a>
-      <a href="{{ url_for('about') }}">Про магазин</a>
-    </nav>
+    <header>
+      <nav>
+        <a href="{{ url_for('index') }}">Головна</a>
+        <a href="{{ url_for('students_list') }}">Студенти</a>
+        <a href="{{ url_for('schedule_view') }}">Розклад</a>
+        <a href="{{ url_for('about') }}">Про коледж</a>
+      </nav>
+    </header>
 
-    <hr />
-
-    {% block content %}{% endblock %}
+    <main>{% block content %}{% endblock %}</main>
 
     <footer>
-      <hr />
-      © 2026 Електроніка
+      <p>© 2026 Студентський портал</p>
     </footer>
   </body>
 </html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Студент{% endblock %} {% block
+content %} {% if student %}
+
+<h1>{{ student.name }}</h1>
+
+<p>Група: {{ student.group }}</p>
+<p>Курс: {{ student.course }}</p>
+
+<p>
+  Email:
+  <a href="mailto:{{ student.email }}"> {{ student.email }} </a>
+</p>
+
+<p>Середній бал: {{ student.gpa }}</p>
+
+<p>
+  Статус: {% if student.is_active %}
+  <span class="active">Активний</span>
+  {% else %}
+  <span class="inactive">Неактивний</span>
+  {% endif %}
+</p>
+
+<h3>Предмети</h3>
+
+<ul>
+  {% for subject in student.subjects %}
+
+  <li>{{ subject }}</li>
+
+  {% else %}
+
+  <li>Предмети не призначені</li>
+
+  {% endfor %}
+</ul>
+
+<h3>Оцінка</h3>
+
+{% if student.gpa >= 4.5 %}
+<p style="color: green">Відмінник</p>
+
+{% elif student.gpa >= 3.5 %}
+<p style="color: blue">Добре</p>
+
+{% else %}
+<p style="color: red">Потрібно покращити</p>
+{% endif %}
+
+<p>
+  <a href="{{ url_for('students_list') }}"> ← Повернутися до списку </a>
+</p>
+
+{% else %}
+
+<h2>Студента не знайдено</h2>
+
+<a href="{{ url_for('students_list') }}"> ← Повернутися до списку </a>
+
+{% endif %} {% endblock %}
