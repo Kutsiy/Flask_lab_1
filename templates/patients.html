@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Пацієнти</h2>
+
+<form>
+  <input name="q" placeholder="Пошук" />
+  <button>Знайти</button>
+</form>
+
+{% for p in patients %}
+<div class="card">
+  {{ p.first_name }} {{ p.last_name }}
+
+  <br />
+  <a href="/patient/{{ p.id }}">Деталі</a>
+  <a href="/edit/{{ p.id }}">Редагувати</a>
+  <a href="/delete/{{ p.id }}">Видалити</a>
+</div>
+{% endfor %} {% endblock %}

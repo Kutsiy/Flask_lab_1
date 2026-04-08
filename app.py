@@ -1,141 +1,100 @@
-from flask import Flask, render_template
-from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clinic.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-students = [
-{
-'id': 1,
-'name': 'Олена Коваленко',
-'group': 'КН-21',
-'course': 2,
-'gpa': 4.5,
-'email': 'kovalenko@college.ua',
-'is_active': True,
-'subjects': ['Python', 'Бази даних', 'Алгоритми'],
-},
-{
-'id': 2,
-'name': 'Андрій Мельник',
-'group': 'КН-21',
-'course': 2,
-'gpa': 3.8,
-'email': 'melnyk@college.ua',
-'is_active': True,
-'subjects': ['Python', 'Веб-технології'],
-},
-{
-'id': 3,
-'name': 'Марія Шевченко',
-'group': 'КН-22',
-'course': 1,
-'gpa': 4.9,
-'email': 'shevchenko@college.ua',
-'is_active': True,
-'subjects': ['Вступ до програмування', 'Математика', 'Англійська'],
-},
-{
-'id': 4,
-'name': 'Дмитро Бондаренко',
-'group': 'КН-20',
-'course': 3,
-'gpa': 3.2,
-'email': 'bondarenko@college.ua',
-'is_active': False,
-'subjects': ['Операційні системи', 'Мережі'],
-},
-{
-'id': 5,
-'name': 'Ірина Ткаченко',
-'group': 'КН-22',
-'course': 1,
-'gpa': 4.1,
-'email': 'tkachenko@college.ua',
-'is_active': True,
-'subjects': ['Вступ до програмування', 'Математика', 'Фізика'],
-},
-{
-'id': 6,
-'name': 'Олексій Кравченко',
-'group': 'КН-21',
-'course': 2,
-'gpa': 3.5,
-'email': 'kravchenko@college.ua',
-'is_active': True,
-'subjects': ['Python', 'Бази даних'],
-},
-]
+db = SQLAlchemy(app)
 
-schedule = {
-'Понеділок': [
-{'time': '08:30', 'subject': 'Python', 'room': '301', 'type': 'лекція'},
-{'time': '10:15', 'subject': 'Бази даних', 'room': '215', 'type': 'практика'},
-],
-'Вівторок': [
-{'time': '08:30', 'subject': 'Алгоритми', 'room': '301', 'type': 'лекція'},
-{'time': '10:15', 'subject': 'Англійська', 'room': '118', 'type': 'практика'},
-{'time': '12:00', 'subject': 'Веб-технології', 'room': '305', 'type': 'лабораторна'},
-],
-'Середа': [],
-'Четвер': [
-{'time': '10:15', 'subject': 'Python', 'room': '305', 'type': 'лабораторна'},
-{'time': '12:00', 'subject': 'Математика', 'room': '210', 'type': 'лекція'},
-],
-"П'ятниця": [
-{'time': '08:30', 'subject': 'Бази даних', 'room': '301', 'type': 'лекція'},
-],
-}
 
-college_info = {
-'name': 'Київський фаховий коледж інформаційних технологій',
-'short_name': 'КФКІТ',
-'founded': 1985,
-'address': 'м. Київ, вул. Навчальна, 1',
-'phone': '+380 44 123 45 67',
-'email': 'info@kfkit.edu.ua',
-'departments': [
-"Комп'ютерних наук",
-'Інформаційних технологій',
-'Кібербезпеки',
-'Програмної інженерії',
-],
-}
+class Doctor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+
+class Patient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+    phone = db.Column(db.String(20))
+
+
+def init():
+    if Patient.query.count() == 0:
+        db.session.add_all([
+            Patient(first_name='Oleg', last_name='Melnyk', phone='111'),
+            Patient(first_name='Anna', last_name='Ivanova', phone='222'),
+            Patient(first_name='Dima', last_name='Petrov', phone='333'),
+            Patient(first_name='Ira', last_name='Koval', phone='444'),
+            Patient(first_name='Max', last_name='Bondar', phone='555'),
+        ])
+        db.session.commit()
 
 
 @app.route('/')
 def index():
-    return render_template(
-        'index.html',
-        college=college_info,
-        total_students=len(students)
+    return render_template('index.html',
+        patients=Patient.query.count(),
+        doctors=Doctor.query.count()
     )
 
-@app.route('/students')
-def students_list():
-    return render_template('students.html', students=students)
+@app.route('/patients')
+def patients():
+    q = request.args.get('q', '')
+    query = Patient.query
 
-@app.route('/student/<int:student_id>')
-def student_detail(student_id):
-    student = next((s for s in students if s['id'] == student_id), None)
-    return render_template('student.html', student=student)
+    if q:
+        query = query.filter(Patient.first_name.contains(q))
 
-@app.route('/schedule')
-def schedule_view():
-    total_lessons = sum(len(lessons) for lessons in schedule.values())
-    return render_template(
-        'schedule.html',
-        schedule=schedule,
-        total_lessons=total_lessons
-    )
+    data = query.all()
+    return render_template('patients.html', patients=data)
 
-@app.route('/about')
-def about():
-    age = datetime.now().year - college_info['founded']
-    return render_template(
-        'about.html',
-        info=college_info,
-        age=age
-    )
+@app.route('/patient/<int:id>')
+def detail(id):
+    p = Patient.query.get_or_404(id)
+    return render_template('patient_detail.html', p=p)
 
-if __name__ == "__main__":
+
+@app.route('/add', methods=['GET', 'POST'])
+def add():
+    if request.method == 'POST':
+        p = Patient(
+            first_name=request.form['first_name'],
+            last_name=request.form['last_name'],
+            phone=request.form['phone']
+        )
+        db.session.add(p)
+        db.session.commit()
+        return redirect('/patients')
+
+    return render_template('form.html', p=None)
+
+
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    p = Patient.query.get_or_404(id)
+
+    if request.method == 'POST':
+        p.first_name = request.form['first_name']
+        p.last_name = request.form['last_name']
+        p.phone = request.form['phone']
+        db.session.commit()
+        return redirect('/patients')
+
+    return render_template('form.html', p=p)
+
+
+@app.route('/delete/<int:id>')
+def delete(id):
+    p = Patient.query.get_or_404(id)
+    db.session.delete(p)
+    db.session.commit()
+    return redirect('/patients')
+
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        init()
     app.run(debug=True)

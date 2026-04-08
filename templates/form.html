@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block content %}
+<h2>{{ 'Редагувати' if p else 'Додати' }}</h2>
+
+<form method="post">
+  <input
+    name="first_name"
+    value="{{ p.first_name if p else '' }}"
+    placeholder="Ім'я"
+  />
+  <input
+    name="last_name"
+    value="{{ p.last_name if p else '' }}"
+    placeholder="Прізвище"
+  />
+  <input
+    name="phone"
+    value="{{ p.phone if p else '' }}"
+    placeholder="Телефон"
+  />
+  <button>Зберегти</button>
+</form>
+
+{% endblock %}

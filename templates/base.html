@@ -1,8 +1,7 @@
 <!doctype html>
-<html lang="uk">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <title>{% block title %}Студентський портал{% endblock %}</title>
+    <title>Поліклініка</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -10,18 +9,11 @@
   </head>
   <body>
     <header>
-      <nav>
-        <a href="{{ url_for('index') }}">Головна</a>
-        <a href="{{ url_for('students_list') }}">Студенти</a>
-        <a href="{{ url_for('schedule_view') }}">Розклад</a>
-        <a href="{{ url_for('about') }}">Про коледж</a>
-      </nav>
+      <a href="/">Головна</a>
+      <a href="/patients">Пацієнти</a>
+      <a href="/add">Додати</a>
     </header>
 
-    <main>{% block content %}{% endblock %}</main>
-
-    <footer>
-      <p>© 2026 Студентський портал</p>
-    </footer>
+    <div class="container">{% block content %}{% endblock %}</div>
   </body>
 </html>
