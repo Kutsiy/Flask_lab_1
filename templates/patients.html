@@ -1,18 +1,26 @@
-{% extends 'base.html' %} {% block content %}
-<h2>Пацієнти</h2>
-
-<form>
-  <input name="q" placeholder="Пошук" />
-  <button>Знайти</button>
+{% extends "base.html" %} {% block title %}Patients{% endblock %} {% block
+content %}
+<h1>Patients</h1>
+<form method="get">
+  <input type="text" name="q" value="{{ q }}" />
+  <button>Search</button>
 </form>
-
-{% for p in patients %}
-<div class="card">
-  {{ p.first_name }} {{ p.last_name }}
-
-  <br />
-  <a href="/patient/{{ p.id }}">Деталі</a>
-  <a href="/edit/{{ p.id }}">Редагувати</a>
-  <a href="/delete/{{ p.id }}">Видалити</a>
+<ul>
+  {% for patient in pagination.items %}
+  <li>
+    <a href="{{ url_for('patient_detail', id=patient.id) }}"
+      >{{ patient.first_name }} {{ patient.last_name }}</a
+    >
+  </li>
+  {% endfor %}
+</ul>
+<div>
+  {% if pagination.has_prev %}
+  <a href="{{ url_for('patients', page=pagination.prev_num, q=q) }}">Prev</a>
+  {% endif %} Page {{ pagination.page }} of {{ pagination.pages }} {% if
+  pagination.has_next %}
+  <a href="{{ url_for('patients', page=pagination.next_num, q=q) }}">Next</a>
+  {% endif %}
 </div>
-{% endfor %} {% endblock %}
+<a href="{{ url_for('add_patient') }}">Add Patient</a>
+{% endblock %}

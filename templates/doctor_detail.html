@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block title %}{{ doctor.first_name }} {{
+doctor.last_name }}{% endblock %} {% block content %}
+<h1>{{ doctor.first_name }} {{ doctor.last_name }}</h1>
+<h2>Appointments</h2>
+<ul>
+  {% for a in doctor.appointments %}
+  <li>
+    Patient: {{ a.patient.first_name }} {{ a.patient.last_name }} | Date: {{
+    a.date }}
+  </li>
+  {% endfor %}
+</ul>
+<a href="{{ url_for('doctors') }}">Back</a>
+{% endblock %}

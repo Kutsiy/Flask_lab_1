@@ -1,23 +1,26 @@
-{% extends 'base.html' %} {% block content %}
-<h2>{{ 'Редагувати' if p else 'Додати' }}</h2>
-
+{% extends "base.html" %} {% block title %}{{ 'Edit' if p else 'Add' }}
+Patient{% endblock %} {% block content %}
+<h1>{{ 'Edit' if p else 'Add' }} Patient</h1>
 <form method="post">
   <input
+    type="text"
     name="first_name"
     value="{{ p.first_name if p else '' }}"
-    placeholder="Ім'я"
+    placeholder="First Name"
   />
   <input
+    type="text"
     name="last_name"
     value="{{ p.last_name if p else '' }}"
-    placeholder="Прізвище"
+    placeholder="Last Name"
   />
   <input
+    type="text"
     name="phone"
     value="{{ p.phone if p else '' }}"
-    placeholder="Телефон"
+    placeholder="Phone"
   />
-  <button>Зберегти</button>
+  <button type="submit">Save</button>
 </form>
-
+<a href="{{ url_for('patients') }}">Back to Patients</a>
 {% endblock %}

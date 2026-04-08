@@ -1,7 +1,14 @@
-{% extends 'base.html' %} {% block content %}
-<div class="card">
-  <h2>Статистика</h2>
-  <p>Пацієнтів: {{ patients }}</p>
-  <p>Лікарів: {{ doctors }}</p>
+{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<h1>Clinic Dashboard</h1>
+<ul>
+  <li>Patients: {{ patients }}</li>
+  <li>Doctors: {{ doctors }}</li>
+  <li>Appointments: {{ appointments }}</li>
+</ul>
+<div class="links">
+  <a href="{{ url_for('patients') }}">Patients</a> |
+  <a href="{{ url_for('doctors') }}">Doctors</a> |
+  <a href="{{ url_for('appointments') }}">Appointments</a>
 </div>
 {% endblock %}

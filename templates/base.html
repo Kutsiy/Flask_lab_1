@@ -1,7 +1,9 @@
 <!doctype html>
-<html>
+<html lang="uk">
   <head>
-    <title>Поліклініка</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Clinic{% endblock %}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -9,11 +11,22 @@
   </head>
   <body>
     <header>
-      <a href="/">Головна</a>
-      <a href="/patients">Пацієнти</a>
-      <a href="/add">Додати</a>
+      <h1>Клініка</h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Головна</a>
+        <a href="{{ url_for('patients') }}">Пацієнти</a>
+        <a href="{{ url_for('doctors') }}">Лікарі</a>
+        <a href="{{ url_for('appointments') }}">Записи</a>
+        <a href="{{ url_for('add_patient') }}">Додати пацієнта</a>
+      </nav>
+      <hr />
     </header>
 
-    <div class="container">{% block content %}{% endblock %}</div>
+    <main>{% block content %} {% endblock %}</main>
+
+    <footer>
+      <hr />
+      <p>© 2026 Clinic</p>
+    </footer>
   </body>
 </html>
