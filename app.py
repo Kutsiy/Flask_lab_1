@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -8,11 +8,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+
 class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
     appointments = db.relationship('Appointment', backref='doctor', lazy=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name
+        }
+
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,11 +30,28 @@ class Patient(db.Model):
     phone = db.Column(db.String(20))
     appointments = db.relationship('Appointment', backref='patient', lazy=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "phone": self.phone
+        }
+
+
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "doctor": self.doctor.to_dict(),
+            "patient": self.patient.to_dict(),
+            "date": self.date.isoformat()
+        }
 
 def init():
     if Doctor.query.count() == 0:
@@ -36,6 +62,7 @@ def init():
             Doctor(first_name='Maria', last_name='Garcia'),
             Doctor(first_name='James', last_name='Wilson'),
         ])
+
     if Patient.query.count() == 0:
         db.session.add_all([
             Patient(first_name='Oleg', last_name='Melnyk', phone='111'),
@@ -44,8 +71,8 @@ def init():
             Patient(first_name='Ira', last_name='Koval', phone='444'),
             Patient(first_name='Max', last_name='Bondar', phone='555'),
         ])
+
     if Appointment.query.count() == 0:
-        # 5 random appointments
         db.session.add_all([
             Appointment(doctor_id=1, patient_id=1),
             Appointment(doctor_id=2, patient_id=2),
@@ -53,89 +80,140 @@ def init():
             Appointment(doctor_id=1, patient_id=4),
             Appointment(doctor_id=2, patient_id=5),
         ])
+
     db.session.commit()
 
 
-@app.route('/')
-def index():
-    return render_template('index.html',
-        patients=Patient.query.count(),
-        doctors=Doctor.query.count(),
-        appointments=Appointment.query.count()
-    )
-@app.route('/patients')
-def patients():
+def paginate(query):
     page = request.args.get('page', 1, type=int)
-    q = request.args.get('q', '')
+    per_page = request.args.get('per_page', 5, type=int)
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    return {
+        "data": [item.to_dict() for item in pagination.items],
+        "meta": {
+            "page": page,
+            "total": pagination.total,
+            "pages": pagination.pages
+        }
+    }
+
+
+
+@app.route('/api/patients')
+def get_patients():
+    search = request.args.get('search', '')
+
     query = Patient.query
-    if q:
-        query = query.filter(Patient.first_name.contains(q))
-    pagination = query.paginate(page=page, per_page=5)
-    return render_template('patients.html', pagination=pagination, q=q)
+    if search:
+        query = query.filter(Patient.first_name.contains(search))
 
-@app.route('/patient/<int:id>')
-def patient_detail(id):
-    p = Patient.query.get_or_404(id)
-    return render_template('patient_detail.html', p=p)
+    return jsonify(paginate(query))
 
-@app.route('/add', methods=['GET', 'POST'])
-def add_patient():
-    if request.method == 'POST':
-        p = Patient(
-            first_name=request.form['first_name'],
-            last_name=request.form['last_name'],
-            phone=request.form['phone']
-        )
-        db.session.add(p)
-        db.session.commit()
-        return redirect(url_for('patients'))
-    return render_template('form.html', p=None)
 
-@app.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit_patient(id):
-    p = Patient.query.get_or_404(id)
-    if request.method == 'POST':
-        p.first_name = request.form['first_name']
-        p.last_name = request.form['last_name']
-        p.phone = request.form['phone']
-        db.session.commit()
-        return redirect(url_for('patients'))
-    return render_template('form.html', p=p)
+@app.route('/api/patients/<int:id>')
+def get_patient(id):
+    patient = Patient.query.get_or_404(id)
+    return jsonify(patient.to_dict())
 
-@app.route('/delete/<int:id>')
-def delete_patient(id):
-    p = Patient.query.get_or_404(id)
-    db.session.delete(p)
-    db.session.commit()
-    return redirect(url_for('patients'))
 
-@app.route('/doctors')
-def doctors():
-    page = request.args.get('page', 1, type=int)
-    q = request.args.get('q', '')
-    query = Doctor.query
-    if q:
-        query = query.filter(Doctor.first_name.contains(q) | Doctor.last_name.contains(q))
-    pagination = query.paginate(page=page, per_page=5)
-    return render_template('doctors.html', pagination=pagination, q=q)
+@app.route('/api/doctors')
+def get_doctors():
+    return jsonify(paginate(Doctor.query))
 
-@app.route('/doctor/<int:id>')
-def doctor_detail(id):
+
+@app.route('/api/doctors/<int:id>')
+def get_doctor(id):
     doctor = Doctor.query.get_or_404(id)
-    return render_template('doctor_detail.html', doctor=doctor)
+    return jsonify(doctor.to_dict())
 
-@app.route('/appointments')
-def appointments():
-    page = request.args.get('page', 1, type=int)
-    q = request.args.get('q', '')
+
+@app.route('/api/appointments')
+def get_appointments():
+    search = request.args.get('search', '')
+
     query = Appointment.query.join(Patient).join(Doctor)
-    if q:
-        query = query.filter(Patient.first_name.contains(q) | Doctor.first_name.contains(q))
-    pagination = query.paginate(page=page, per_page=5)
-    return render_template('appointments.html', pagination=pagination, q=q)
+    if search:
+        query = query.filter(
+            Patient.first_name.contains(search) |
+            Doctor.first_name.contains(search)
+        )
+
+    return jsonify(paginate(query))
+
+
+@app.route('/api/appointments/<int:id>')
+def get_appointment(id):
+    appt = Appointment.query.get_or_404(id)
+    return jsonify(appt.to_dict())
+
+
+@app.route('/api/patients', methods=['POST'])
+def create_patient():
+    data = request.json
+
+    if not data or not data.get('first_name') or not data.get('last_name'):
+        return jsonify({"error": "Invalid data"}), 400
+
+    patient = Patient(
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        phone=data.get('phone', '')
+    )
+
+    db.session.add(patient)
+    db.session.commit()
+
+    return jsonify(patient.to_dict()), 201
+
+
+@app.route('/api/patients/<int:id>', methods=['PUT'])
+def update_patient(id):
+    patient = Patient.query.get_or_404(id)
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "No data"}), 400
+
+    patient.first_name = data.get('first_name', patient.first_name)
+    patient.last_name = data.get('last_name', patient.last_name)
+    patient.phone = data.get('phone', patient.phone)
+
+    db.session.commit()
+
+    return jsonify(patient.to_dict())
+
+
+@app.route('/api/patients/<int:id>', methods=['DELETE'])
+def delete_patient(id):
+    patient = Patient.query.get_or_404(id)
+
+    db.session.delete(patient)
+    db.session.commit()
+
+    return jsonify({"message": "Deleted"})
+
+
+@app.route('/api/stats')
+def stats():
+    total_patients = Patient.query.count()
+    total_doctors = Doctor.query.count()
+    total_appointments = Appointment.query.count()
+
+    avg_per_doctor = total_appointments / total_doctors if total_doctors else 0
+
+    return jsonify({
+        "patients": total_patients,
+        "doctors": total_doctors,
+        "appointments": total_appointments,
+        "avg_appointments_per_doctor": avg_per_doctor
+    })
+
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         init()
+
     app.run(debug=True)
